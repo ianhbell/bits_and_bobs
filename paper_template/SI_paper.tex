@@ -1,0 +1,51 @@
+%&xelatex
+%\pdfoutput=1
+
+\documentclass[journal = jceaax, manuscript=suppinfo]{achemso}
+\setkeys{acs}{doi = true}
+\SectionNumbersOn
+
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{cancel}
+\usepackage{hyperref}
+\usepackage[capitalize]{cleveref}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{minted}
+\usepackage{zref-xr}
+\usepackage{lscape}
+
+\include{commons}
+\graphicspath{{figs/}}
+
+\newcommand{\doi}[1]{\href{http://dx.doi.org/#1}{\nolinkurl{#1}}}
+
+\title{\papertitle}
+\input{authorinfo.tex.in}
+
+\begin{document}
+\setstretch{1}
+\maketitle
+
+\tableofcontents
+
+\clearpage
+
+\section{Introduction}
+
+\subsection{Solve for collision integral $\neff$}
+\label{sec:CIneff}
+
+\begin{figure}[H]
+    \caption{Cold! \label{fig:cold}}
+    \includegraphics[width=3in]{cold}
+    \end{figure}
+
+\end{document}

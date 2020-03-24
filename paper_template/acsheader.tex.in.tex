@@ -1,0 +1,39 @@
+\documentclass[journal = jceaax, layout=twocolumn]{achemso}
+\setkeys{acs}{doi = true}
+\SectionNumbersOn
+
+% Fix the border box for the TOC image
+% See https://tex.stackexchange.com/a/338307
+\makeatletter
+\setlength{\acs@tocentry@height}{3.25 in}
+\setlength{\acs@tocentry@width}{1.75 in}
+\makeatother
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{cancel}
+\usepackage{supertabular}
+\hypersetup{
+    %hidelinks,
+    %colorlinks = false,
+    %linkbordercolor = {.}
+}
+\usepackage[capitalize]{cleveref}
+\usepackage{subcaption}
+
+\usepackage{zref-xr,zref-user}
+\zxrsetup{verbose}
+\zexternaldocument*{SI_neff}
+
+\title{\papertitle}
+\input{authorinfo.tex.in}
+
+\newcommand{\doi}[1]{\href{http://dx.doi.org/#1}{\nolinkurl{#1}}}
+\newcommand{\gammao}{\ensuremath{\gamma^{\circ}}}
+
+\graphicspath{{figs/}}

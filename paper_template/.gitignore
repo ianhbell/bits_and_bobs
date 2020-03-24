@@ -1,0 +1,15 @@
+/*.gz
+/*.aux
+/*.bbl
+/*.blg
+/*.log
+/*.out
+/acs-PropaneViscosity.bib
+/acs-SI_PropaneViscosity.bib
+__pycache__
+/.ipynb_checkpoints
+/_minted-SI_neff
+/acs-SI_neff.bib
+/acs-HTlimit.bib
+/acs-neff.bib
+/neffNotes.bib
