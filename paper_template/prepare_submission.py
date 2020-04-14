@@ -78,9 +78,10 @@ def get_injected(TeX, *, ofnames):
 
     with open(TeX + '.tex') as fp:
         contents = fp.read()
-        contents = re.sub(r'\\input{(.+)}', repl_func, contents)
-        contents = re.sub(r'\\include{(.+)}', repl_func, contents)
-        contents = re.sub(r'\\includegraphics\[(.+)\]{(.+)}', repl_figs, contents)
+        for i in range(100):
+            contents = re.sub(r'\\input{(.+)}', repl_func, contents)
+            contents = re.sub(r'\\include{(.+)}', repl_func, contents)
+            contents = re.sub(r'\\includegraphics\[(.+)\]{(.+)}', repl_figs, contents)
 
     for ofname in ofnames:
         with open(ofname, 'w') as fp:
@@ -129,9 +130,6 @@ resubmission = False
 
 # Build SI
 build_SI(SI_TeX)
-
-for fname in ['commons.tex','revtex_header.tex.in.tex']:
-    shutil.copy2(fname, 'submission')
 
 # Build injected manuscript, embedding the BibTeX and updating figure paths
 get_injected(TeX, ofnames=['submission/' + TeX + '_injected.tex'])
