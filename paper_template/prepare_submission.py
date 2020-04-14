@@ -10,6 +10,9 @@ def clean(TeX):
     for ext in 'aux','bbl','blg','idx','log','nlo','out','spl','bib':
         for fn in glob.glob('submission/'+TeX+'_injected.'+ext):
             os.remove(fn)
+    for ext in ['aux']:
+        for fn in glob.glob('submission/SI_'+TeX+'.'+ext):
+            os.remove(fn)
     # After injection, don't need the bib files
     for fn in glob.glob('submission/*.bib'):
         os.remove(fn)
@@ -82,6 +85,15 @@ def get_injected(TeX, *, ofnames):
             contents = re.sub(r'\\input{(.+)}', repl_func, contents)
             contents = re.sub(r'\\include{(.+)}', repl_func, contents)
             contents = re.sub(r'\\includegraphics\[(.+)\]{(.+)}', repl_figs, contents)
+
+    # Write a file that contains the contents of the aux file for the SI
+    # AIP submission does not like .aux files (doesn't allow them, but auto-generating this file on the fly seems to work)
+    # Also, adding to injected file also causes problems in diff-ing.
+    if '%$SI_AUX$%' in contents:
+        contents = contents.replace('%$SI_AUX$%', r'\input{SI.aux.tex}')
+        with open('submission/SI.aux.tex','w') as fp:
+            fp.write(r'\begin{filecontents}{SI_'+TeX+'.aux}'+'\n'+open('submission/SI_'+TeX+'.aux').read()+r'\n\end{filecontents}')
+        os.remove('submission/SI_'+TeX+'.aux')
 
     for ofname in ofnames:
         with open(ofname, 'w') as fp:
