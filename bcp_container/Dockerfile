@@ -11,9 +11,9 @@ RUN mkdir /boost && \
 	cd /boost/boost_1_75_0/ && \
 	./bootstrap.sh && \
 	./b2 tools/bcp && \
-	mkdir /mp && \
-	bin.v2/tools/bcp/gcc-9/release/link-static/bcp multiprecision/cpp_bin_float.hpp /mp && \
-	zip -r /boost_mp.zip /mp && \
-	tar czf /boost_mp.tar.gz /mp
+	mkdir /boost_multiprecision && \
+	bin.v2/tools/bcp/gcc-9/release/link-static/bcp multiprecision/cpp_bin_float.hpp multiprecision/eigen.hpp /boost_multiprecision && \
+	zip -r /boost_multiprecision.zip /boost_multiprecision && \
+	tar czf /boost_multiprecision.tar.gz /boost_multiprecision
 	
 CMD cp /*.tar.gz /output
