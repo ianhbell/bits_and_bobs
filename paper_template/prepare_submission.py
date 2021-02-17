@@ -125,9 +125,13 @@ def make_diff(TeX):
         for ext in 'aux','bbl','blg','idx','log','nlo','out','spl','bib','synctex.gz':
             for fn in glob.glob('diff.'+ext):
                 os.remove(fn)
-    cmd = r'set PATH=D:\Software\Strawberry\perl\bin;%PATH% && set TEXLIVE_WINDOWS_TRY_EXTERNAL_PERL=1 && latexdiff --allow-spaces --encoding=ascii "1. submission/submission/submission/'+TeX+'_injected.tex" submission/'+TeX+'_injected.tex > diff.tex'
-    print(cmd)
-    subprocess.check_call(cmd, shell=True)
+
+    # See https://stackoverflow.com/a/41489151
+    call_fmt = 'docker run --mount type=bind,source="%CWD%",target=/h gs bash -c "cd /h && latexdiff --allow-spaces --encoding=ascii \\"0. submission/submission/%TeX%_injected.tex\\" submission/%TeX%_injected.tex > diff.tex"'
+    call = call_fmt.replace('%TeX%', TeX).replace('%CWD%', os.path.abspath(here).replace("\\",'/'))
+    # print(call)#; quit()
+    subprocess.check_call(call, shell=True, cwd='.')
+
     for i in range(3):
         subprocess.check_call('xelatex --quiet diff', cwd='.', shell=True)
     subprocess.call('bibtex diff', cwd='.', shell=True)
