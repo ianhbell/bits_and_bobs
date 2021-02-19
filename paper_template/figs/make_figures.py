@@ -13,6 +13,7 @@ def make_figure_hot():
 def make_figure_cold():
     x = [1,2,3]
     y = np.cos(x)
+    fig, ax = plt.subplots(1,1,figsize=(3.5,3))
     plt.plot(x, y,color='c')
     plt.tight_layout(pad=0.2)
     plt.savefig('cold.pdf')

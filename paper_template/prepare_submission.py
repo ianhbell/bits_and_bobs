@@ -68,8 +68,9 @@ def get_injected(TeX, *, ofnames):
         # If the line is commented, don't do the injection
         if match_is_commented(matchobj):
             return matchobj.group(0)
-        old_path = matchobj.group(2)
-        new_path = matchobj.group(2)
+        N = len(matchobj.groups())
+        old_path = matchobj.group(N)
+        new_path = matchobj.group(N)
         if '/' in new_path or '\\' in new_path:
             new_path = new_path.replace('\\','/').rsplit('/',1)[1]
         print(old_path, new_path)
@@ -77,13 +78,14 @@ def get_injected(TeX, *, ofnames):
             shutil.copy2('figs/'+old_path, 'submission/'+new_path+'.pdf')
         else:
             shutil.copy2('figs/'+old_path+'.pdf', 'submission/'+new_path+'.pdf')
-        return '\includegraphics[{w:s}]{{{f:s}}}'.format(w=matchobj.group(1), f=new_path)
+        return '\includegraphics[{w:s}]{{{f:s}}}'.format(w=matchobj.group(1) if N >= 2 else '', f=new_path)
 
     with open(TeX + '.tex') as fp:
         contents = fp.read()
         for i in range(100):
             contents = re.sub(r'\\input{(.+)}', repl_func, contents)
             contents = re.sub(r'\\include{(.+)}', repl_func, contents)
+            contents = re.sub(r'\\includegraphics{(.+)}', repl_figs, contents)
             contents = re.sub(r'\\includegraphics\[(.+)\]{(.+)}', repl_figs, contents)
 
     # Write a file that contains the contents of the aux file for the SI
@@ -143,9 +145,11 @@ def make_diff(TeX):
 TeX = 'paper'
 SI_TeX = 'SI_' + TeX
 resubmission = False
+has_SI = True
 
 # Build SI
-build_SI(SI_TeX)
+if has_SI:
+    build_SI(SI_TeX)
 
 # Build injected manuscript, embedding the BibTeX and updating figure paths
 get_injected(TeX, ofnames=['submission/' + TeX + '_injected.tex'])
@@ -170,7 +174,9 @@ for fname in glob.glob('submission/*.*'):
     shutil.move(fname, 'submission/submission')
 
 # Copy back the files we want to not zip
-keepers = [TeX+'_injected.pdf', SI_TeX+'.pdf']
+keepers = [TeX+'_injected.pdf']
+if has_SI:
+    keepers.append(SI_TeX+'.pdf')
 for fname in keepers:
     shutil.move('submission/submission/'+fname, 'submission')
 shutil.move('submission/'+TeX+'_injected.pdf', 'submission/'+TeX+'.pdf')
