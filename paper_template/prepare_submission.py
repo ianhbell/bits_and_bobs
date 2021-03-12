@@ -73,11 +73,15 @@ def get_injected(TeX, *, ofnames):
         new_path = matchobj.group(N)
         if '/' in new_path or '\\' in new_path:
             new_path = new_path.replace('\\','/').rsplit('/',1)[1]
-        print(old_path, new_path)
+        print(old_path, '-->', new_path, N, 'groups')
         if os.path.exists('figs/'+old_path):
             shutil.copy2('figs/'+old_path, 'submission/'+new_path+'.pdf')
         else:
-            shutil.copy2('figs/'+old_path+'.pdf', 'submission/'+new_path+'.pdf')
+            for extension in ['.pdf','.png']:
+                old, new = 'figs/'+old_path+extension, 'submission/'+new_path+extension
+                if os.path.exists(old):
+                    shutil.copy2(old, new)
+
         return '\includegraphics[{w:s}]{{{f:s}}}'.format(w=matchobj.group(1) if N >= 2 else '', f=new_path)
 
     with open(TeX + '.tex') as fp:
