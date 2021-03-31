@@ -1,0 +1,10 @@
+name: webplotting
+dependencies:
+  - python=3.8
+  - matplotlib
+  - pip
+  #- jupyter # for local testing, uncomment, for binder, not needed
+  #- notebook # for local testing, uncomment, for binder, not needed
+  - pip:
+    - plotly
+    - ctREFPROP
