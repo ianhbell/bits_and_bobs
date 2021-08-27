@@ -45,4 +45,4 @@ for m in sorted(set(missing)):
     print('Missing:', m)
 
 with open('Alexandria.bib','w') as fp:
-    fp.write(bib_data.to_string('bibtex').replace(r'\\textasciitilde',r'\~'))
+    fp.write(bib_data.to_string('bibtex').replace(r'\\textasciitilde',r'\~').replace('\\_', r'_'))

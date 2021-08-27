@@ -5,5 +5,7 @@
 /*.log
 /*.out
 /*.synctex.gz
+/**/acs-*.bib
+/**/*Notes.bib
 /**/__pycache__
 /**/.ipynb_checkpoints

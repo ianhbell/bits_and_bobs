@@ -1,3 +1,6 @@
+"""
+Note: https://tex.stackexchange.com/questions/574280/latexdiff-with-cite-commands-gives-output-with-apparently-mismatched-braces
+"""
 import re, os, subprocess, shutil, glob
 
 def remakedir(path):
@@ -137,6 +140,13 @@ def make_diff(TeX):
     call = call_fmt.replace('%TeX%', TeX).replace('%CWD%', os.path.abspath(here).replace("\\",'/'))
     # print(call)#; quit()
     subprocess.check_call(call, shell=True, cwd='.')
+
+    # See https://tex.stackexchange.com/a/579662
+    # See https://tex.stackexchange.com/questions/574280/latexdiff-with-cite-commands-gives-output-with-apparently-mismatched-braces
+    with open('diff.tex') as fp:
+        new = fp.read().replace('\\hspace{0pt}','\\hskip0pt')
+    with open('diff.tex','w') as fp:
+        fp.write(new)
 
     for i in range(3):
         subprocess.check_call('xelatex --quiet diff', cwd='.', shell=True)
