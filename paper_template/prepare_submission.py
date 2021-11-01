@@ -92,8 +92,8 @@ def get_injected(TeX, *, ofnames):
         for i in range(100):
             contents = re.sub(r'\\input{(.+)}', repl_func, contents)
             contents = re.sub(r'\\include{(.+)}', repl_func, contents)
-            contents = re.sub(r'\\includegraphics{(.+)}', repl_figs, contents)
-            contents = re.sub(r'\\includegraphics\[(.+)\]{(.+)}', repl_figs, contents)
+        contents = re.sub(r'\\includegraphics{(.+)}', repl_figs, contents)
+        contents = re.sub(r'\\includegraphics\[(.+)\]{(.+)}', repl_figs, contents)
 
     # Write a file that contains the contents of the aux file for the SI
     # AIP submission does not like .aux files (doesn't allow them, but auto-generating this file on the fly seems to work)
