@@ -13,9 +13,12 @@ def clean(TeX):
     for ext in 'aux','bbl','blg','idx','log','nlo','out','spl','bib':
         for fn in glob.glob('submission/'+TeX+'_injected.'+ext):
             os.remove(fn)
-    for ext in ['aux']:
-        for fn in glob.glob('submission/SI_'+TeX+'.'+ext):
-            os.remove(fn)
+
+def final_clean(TeX):
+    clean(TeX)
+    # for ext in ['aux']:
+    #     for fn in glob.glob('submission/SI_'+TeX+'.'+ext):
+    #         os.remove(fn)
     # After injection, don't need the bib files
     for fn in glob.glob('submission/*.bib'):
         os.remove(fn)
@@ -44,7 +47,7 @@ def convert_to_PDFA(folder):
         subprocess.check_call(call, shell=True, cwd=folder)
     shutil.rmtree(folder+'/PDF')
 
-def get_injected(TeX, *, ofnames):
+def get_injected(TeX, *, ofnames, convert_PDFA=True):
     for matcher in  ['*.bib','*.bst','*.cls','*.bst']:
         for fname in glob.glob(matcher):
             shutil.copy2(fname, 'submission')
@@ -108,7 +111,8 @@ def get_injected(TeX, *, ofnames):
         with open(ofname, 'w') as fp:
             fp.write(contents)
 
-    convert_to_PDFA('submission')
+    if convert_PDFA:
+        convert_to_PDFA('submission')
 
     for i in range(3):
         subprocess.check_call('pdflatex --quiet '+TeX+'_injected.tex', cwd='submission', shell=True)
@@ -120,12 +124,37 @@ def get_injected(TeX, *, ofnames):
     with open('submission/'+TeX+'_injected.tex','w') as fp:
         fp.write(contents)
 
+    def is_commented(m):
+        if all([(line.strip().startswith('%') or line.strip() == "[H]") for line in m.split('\n')]):
+            return True
+        else:
+            return False
+
+    unlabeled_figures = 0
+    for match in re.findall(r"\\begin\{figure[\*]?\}(.*?)\\end\{figure", contents, re.MULTILINE|re.DOTALL):
+        if '\\label' in match or is_commented(match):
+            pass
+        else:
+            print('No label:\n', match)
+            unlabeled_figures += 1
+
+    unlabeled_tables = 0
+    for match in re.findall(r"\\begin\{table[\*]?\}(.*?)\\end\{table", contents, re.MULTILINE|re.DOTALL):
+        if '\\label' in match or is_commented(match):
+            pass
+        else:
+            print('No label:\n', match)
+            unlabeled_tables += 1
+
+    if unlabeled_tables or unlabeled_figures:
+        raise ValueError(f"Some unlabeled tables ({unlabeled_tables}) or figures ({unlabeled_figures}) found")
+
 def build_SI(SI_TeX):
     for i in range(2):
-        subprocess.check_call('pdflatex -shell-escape '+SI_TeX+'.tex', cwd='.', shell=True)
+        subprocess.check_call('pdflatex --quiet -shell-escape '+SI_TeX+'.tex', cwd='.', shell=True)
     subprocess.call('bibtex '+SI_TeX+'', cwd='.', shell=True)
     for i in range(2):
-        subprocess.check_call('pdflatex -shell-escape '+SI_TeX+'.tex', cwd='.', shell=True)
+        subprocess.check_call('pdflatex --quiet -shell-escape '+SI_TeX+'.tex', cwd='.', shell=True)
     shutil.copy2(SI_TeX+'.aux','submission')
     shutil.copy2(SI_TeX+'.pdf','submission')
 
@@ -173,7 +202,7 @@ clean(TeX)
 
 # Compile, check no errors
 for i in range(3):
-    subprocess.check_call('pdflatex '+TeX+'_injected', cwd='submission', shell=True)
+    subprocess.check_call('pdflatex --quiet '+TeX+'_injected', cwd='submission', shell=True)
 
 # Cleanup again
 clean(TeX)
@@ -181,8 +210,9 @@ clean(TeX)
 if resubmission:
     make_diff(TeX)
 
+final_clean(TeX)
+
 os.makedirs('submission/submission', exist_ok=True)
-os.makedirs('submission/implementation', exist_ok=True)
 # os.makedirs('submission/implementation', exist_ok=True)
 for fname in glob.glob('submission/*.*'):
     shutil.move(fname, 'submission/submission')
@@ -199,4 +229,3 @@ if resubmission:
     shutil.move('diff.pdf','submission')
 shutil.make_archive('submission/submission', 'zip', 'submission/submission')
 # shutil.make_archive('submission/implementation', 'zip', 'submission/implementation')
-clean(TeX)
