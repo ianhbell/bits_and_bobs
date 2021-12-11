@@ -46,7 +46,7 @@ df = pandas.read_csv(io.StringIO("""number symbol name mass
 40    Zr    Zirconium    91.22
 41    Nb    Niobium    92.9064
 42    Mo    Molybdenum    95.94
-43    Tc    Technetium    (98)
+43    Tc    Technetium    98
 44    Ru    Ruthenium    101.07
 45    Rh    Rhodium    102.9055
 46    Pd    Palladium    106.4
@@ -64,7 +64,7 @@ df = pandas.read_csv(io.StringIO("""number symbol name mass
 58    Ce    Cerium    140.12
 59    Pr    Praseodymium    140.9077
 60    Nd    Neodymium    144.24
-61    Pm    Promethium    (145)
+61    Pm    Promethium    145
 62    Sm    Samarium    150.4
 63    Eu    Europium    151.96
 64    Gd    Gadolinium    157.25
@@ -103,6 +103,10 @@ class Atom:
 
     @property
     def atomic_mass(self):
+        return self.m_mass
+
+    @property
+    def atomic_number(self):
         return self.m_number
 
 def create_atom(symbol: str) -> Atom:
@@ -114,6 +118,7 @@ class AtomSchema(graphene.ObjectType):
     symbol = graphene.String(description="Symbol.")
     name = graphene.String(description="Name.")
     atomic_mass = graphene.Float(description="Atomic mass.")
+    atomic_number = graphene.Float(description="Atomic number.")
 
 class Query(graphene.ObjectType):
 
