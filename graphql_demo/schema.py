@@ -1,5 +1,7 @@
-from graphene import ObjectType, String, Schema, Enum, Float, List
+import graphene
 import pandas, io
+
+import typing 
 
 df = pandas.read_csv(io.StringIO("""number symbol name mass
 1    H    Hydrogen    1.00797
@@ -80,20 +82,54 @@ df = pandas.read_csv(io.StringIO("""number symbol name mass
 df = df.set_index('symbol')
 
 # Build the enumeration of symbols (conveniently all atom symbols are valid Python variable names)
-Atom = Enum('Atom', [(symbol, symbol) for symbol in df.index])
+AtomEnum = graphene.Enum('AtomEnum', [(symbol, symbol) for symbol in df.index])
 
-class Query(ObjectType):
-    atommass = Float(atom=Atom(default_value="Ar"))
+ATOM_QUERY_ARGS = dict(
+  symbol=graphene.Argument(AtomEnum, required=True),
+)
 
-    # our Resolver method takes the GraphQL context (root, info) as well as
-    # Argument (atom) for the Field and returns data for the query Response
-    def resolve_atommass(root, info, atom):
-        return df.loc[atom, 'mass']
+class Atom:
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, 'm_'+k, v)
 
-    atoms = List(
-        Atom,
-        description="List of atoms.",
+    @property
+    def name(self):
+        return self.m_name
+
+    @property
+    def symbol(self):
+        return self.m_symbol
+
+    @property
+    def atomic_mass(self):
+        return self.m_number
+
+def create_atom(symbol: str) -> Atom:
+    fields = df.loc[symbol]
+    fields['symbol'] = symbol
+    return Atom(**fields)
+
+class AtomSchema(graphene.ObjectType):
+    symbol = graphene.String(description="Symbol.")
+    name = graphene.String(description="Name.")
+    atomic_mass = graphene.Float(description="Atomic mass.")
+
+class Query(graphene.ObjectType):
+
+    atom = graphene.Field(
+        AtomSchema,
+        **ATOM_QUERY_ARGS,
     )
 
+    def resolve_atom(root, info, symbol: str) -> Atom:
+        return create_atom(symbol)
 
-schema = Schema(query=Query)
+    atoms = graphene.List(
+        AtomSchema
+    )
+
+    def resolve_atoms(root, info) -> typing.List[Atom]:
+        return [create_atom(symbol) for symbol in df.index]
+
+schema = graphene.Schema(query=Query)
