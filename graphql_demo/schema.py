@@ -78,8 +78,7 @@ df = pandas.read_csv(io.StringIO("""number symbol name mass
 72    Hf    Hafnium    178.49
 73    Ta    Tantalum    180.9479
 74    W    Tungsten    183.85"""
-), sep=r'\s+', engine='python')
-df = df.set_index('symbol')
+), sep=r'\s+', engine='python', index_col='symbol')
 
 # Build the enumeration of symbols (conveniently all atom symbols are valid Python variable names)
 AtomEnum = graphene.Enum('AtomEnum', [(symbol, symbol) for symbol in df.index])
@@ -88,7 +87,8 @@ ATOM_QUERY_ARGS = dict(
   symbol=graphene.Argument(AtomEnum, required=True),
 )
 
-class Atom:
+class AtomImpl:
+    """ Actual implementation of the atom, holds fields, accessed by attribute """
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, 'm_'+k, v)
@@ -109,12 +109,13 @@ class Atom:
     def atomic_number(self):
         return self.m_number
 
-def create_atom(symbol: str) -> Atom:
+def create_atom(symbol: str) -> AtomImpl:
     fields = df.loc[symbol]
     fields['symbol'] = symbol
-    return Atom(**fields)
+    return AtomImpl(**fields)
 
-class AtomSchema(graphene.ObjectType):
+class Atom(graphene.ObjectType):
+    """ The Schema for an Atom. Paired with AtomImpl """
     symbol = graphene.String(description="Symbol.")
     name = graphene.String(description="Name.")
     atomic_mass = graphene.Float(description="Atomic mass.")
@@ -123,18 +124,18 @@ class AtomSchema(graphene.ObjectType):
 class Query(graphene.ObjectType):
 
     atom = graphene.Field(
-        AtomSchema,
+        Atom,
         **ATOM_QUERY_ARGS,
     )
 
-    def resolve_atom(root, info, symbol: str) -> Atom:
+    def resolve_atom(root, info, symbol: str) -> AtomImpl:
         return create_atom(symbol)
 
     atoms = graphene.List(
-        AtomSchema
+        Atom
     )
 
-    def resolve_atoms(root, info) -> typing.List[Atom]:
+    def resolve_atoms(root, info) -> typing.List[AtomImpl]:
         return [create_atom(symbol) for symbol in df.index]
 
 schema = graphene.Schema(query=Query)
