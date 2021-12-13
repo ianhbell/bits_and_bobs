@@ -110,7 +110,7 @@ class AtomImpl:
         return self.m_number
 
 def create_atom(symbol: str) -> AtomImpl:
-    fields = df.loc[symbol]
+    fields = df.loc[symbol].copy()
     fields['symbol'] = symbol
     return AtomImpl(**fields)
 
