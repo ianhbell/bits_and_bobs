@@ -47,6 +47,24 @@ def convert_to_PDFA(folder):
         subprocess.check_call(call, shell=True, cwd=folder)
     shutil.rmtree(folder+'/PDF')
 
+def check_duplicated_doi(bbl):
+
+    contents = open(bbl).read()
+    import collections
+    
+    thedois = []
+    for match in re.finditer(r' {2,}\\BibitemOpen(.*?)\\BibitemShut', contents, re.MULTILINE | re.DOTALL):
+        doiregex = r'(10.\d{4,9}\/[-._;()\/:A-Za-z0-9]+)' # https://www.crossref.org/blog/dois-and-matching-regular-expressions/
+        # print(match.groups(1))
+        dois = []
+        for doimatch in re.finditer(doiregex, match.groups(1)[0], re.MULTILINE | re.DOTALL):
+            dois.append(doimatch.groups(1,))
+        thedois += list(set(dois))
+
+    for item, count in collections.Counter(thedois).items():
+        if count > 1:
+            raise ValueError(f'Duplicated doi found: {item}')
+
 def get_injected(TeX, *, ofnames, convert_PDFA=True):
     for matcher in  ['*.bib','*.bst','*.cls','*.bst']:
         for fname in glob.glob(matcher):
@@ -117,6 +135,10 @@ def get_injected(TeX, *, ofnames, convert_PDFA=True):
     for i in range(3):
         subprocess.check_call('pdflatex --quiet '+TeX+'_injected.tex', cwd='submission', shell=True)
     subprocess.call('bibtex '+TeX+'_injected', cwd='submission', shell=True)
+
+    # Check that no doi appear more than once
+    check_duplicated_doi('submission/'+TeX+'_injected.bbl')
+
     # Inject the bbl file that was generated
     with open('submission/'+TeX+'_injected.tex') as fp:
         contents = fp.read()
