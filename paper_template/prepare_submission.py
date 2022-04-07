@@ -41,7 +41,7 @@ def convert_to_PDFA(folder):
 
         # For debugging.....
         # call_fmt = 'docker run -v "%CWD%":/h ubuntu bash -c "cd /h/%folder% && ls'
-        call_fmt = 'docker run -v "%CWD%":/h gs bash -c "cd /h/%folder% && gs -dPDFA -dBATCH -dNOPAUSE -dNOOUTERSAVE -sColorConversionStrategy=UseDeviceIndependentColor -sProcessColorModel=DeviceRGB -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile=%OUT% %IN%"'
+        call_fmt = 'docker run -v "%CWD%":/h gs bash -c "cd /h/%folder% && gs -dQUIET -dPDFA -dBATCH -dNOPAUSE -dNOOUTERSAVE -sColorConversionStrategy=UseDeviceIndependentColor -sProcessColorModel=DeviceRGB -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile=%OUT% %IN%"'
         call = call_fmt.replace('%IN%', old_PS).replace('%OUT%', filename).replace('%CWD%', os.path.abspath(os.path.dirname(__file__))).replace('%folder%', folder)
         # print(call); quit()
         subprocess.check_call(call, shell=True, cwd=folder)
