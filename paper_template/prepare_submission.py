@@ -129,6 +129,9 @@ def get_injected(TeX, *, ofnames, convert_PDFA=True):
         with open(ofname, 'w') as fp:
             fp.write(contents)
 
+    # Check that there are no missing citations
+    subprocess.check_call('checkcites --undefined '+TeX+'_injected.aux', cwd='submission', shell=True)
+
     if convert_PDFA:
         convert_to_PDFA('submission')
 
