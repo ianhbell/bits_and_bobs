@@ -65,7 +65,7 @@ def check_duplicated_doi(bbl):
         if count > 1:
             raise ValueError(f'Duplicated doi found: {item}')
 
-def get_injected(TeX, *, ofnames, convert_PDFA=True, inject_bbl=False):
+def get_injected(TeX, *, ofnames, convert_PDFA=True, inject_bbl=False, has_SI=True):
     for matcher in  ['*.bib','*.bst','*.cls','*.bst']:
         for fname in glob.glob(matcher):
             shutil.copy2(fname, 'submission')
@@ -119,7 +119,7 @@ def get_injected(TeX, *, ofnames, convert_PDFA=True, inject_bbl=False):
     # Write a file that contains the contents of the aux file for the SI
     # AIP submission does not like .aux files (doesn't allow them, but auto-generating this file on the fly seems to work)
     # Also, adding to injected file also causes problems in diff-ing.
-    if '%$SI_AUX$%' in contents:
+    if has_SI and '%$SI_AUX$%' in contents:
         contents = contents.replace('%$SI_AUX$%', r'\input{SI.aux.tex}')
         with open('submission/SI.aux.tex','w') as fp:
             fp.write(r'\begin{filecontents}{SI_'+TeX+'.aux}'+'\n'+open('submission/SI_'+TeX+'.aux').read()+r'\n\end{filecontents}')
@@ -221,7 +221,7 @@ if has_SI:
     build_SI(SI_TeX)
 
 # Build injected manuscript, embedding the BibTeX and updating figure paths
-get_injected(TeX, ofnames=['submission/' + TeX + '_injected.tex'])
+get_injected(TeX, ofnames=['submission/' + TeX + '_injected.tex'], convert_PDFA=False, inject_bbl=False, has_SI=has_SI)
 
 # Cleanup again
 clean(TeX)
