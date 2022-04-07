@@ -65,7 +65,7 @@ def check_duplicated_doi(bbl):
         if count > 1:
             raise ValueError(f'Duplicated doi found: {item}')
 
-def get_injected(TeX, *, ofnames, convert_PDFA=True):
+def get_injected(TeX, *, ofnames, convert_PDFA=True, inject_bbl=False):
     for matcher in  ['*.bib','*.bst','*.cls','*.bst']:
         for fname in glob.glob(matcher):
             shutil.copy2(fname, 'submission')
@@ -142,12 +142,13 @@ def get_injected(TeX, *, ofnames, convert_PDFA=True):
     # Check that no doi appear more than once
     check_duplicated_doi('submission/'+TeX+'_injected.bbl')
 
-    # Inject the bbl file that was generated
-    with open('submission/'+TeX+'_injected.tex') as fp:
-        contents = fp.read()
-        contents = re.sub(r'\\bibliography{(.+)}', lambda r: open('submission/'+TeX+'_injected.bbl').read(), contents)
-    with open('submission/'+TeX+'_injected.tex','w') as fp:
-        fp.write(contents)
+    if inject_bbl:
+        # Inject the bbl file that was generated
+        with open('submission/'+TeX+'_injected.tex') as fp:
+            contents = fp.read()
+            contents = re.sub(r'\\bibliography{(.+)}', lambda r: open('submission/'+TeX+'_injected.bbl').read(), contents)
+        with open('submission/'+TeX+'_injected.tex','w') as fp:
+            fp.write(contents)
 
     def is_commented(m):
         if all([(line.strip().startswith('%') or line.strip() == "[H]") for line in m.split('\n')]):
