@@ -40,8 +40,8 @@ def convert_to_PDFA(folder):
         old_PS = new_PDF.replace('.pdf', '.ps')
 
         # For debugging.....
-        # call_fmt = 'docker run -v "%CWD%":/h ubuntu bash -c "cd /h/%folder% && ls'
-        call_fmt = 'docker run -v "%CWD%":/h gs bash -c "cd /h/%folder% && gs -dQUIET -dPDFA -dBATCH -dNOPAUSE -dNOOUTERSAVE -sColorConversionStrategy=UseDeviceIndependentColor -sProcessColorModel=DeviceRGB -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile=%OUT% %IN%"'
+        # call_fmt = 'docker run --rm -v "%CWD%":/h ubuntu bash -c "cd /h/%folder% && ls'
+        call_fmt = 'docker run --rm -v "%CWD%":/h gs bash -c "cd /h/%folder% && gs -dQUIET -dPDFA -dBATCH -dNOPAUSE -dNOOUTERSAVE -sColorConversionStrategy=UseDeviceIndependentColor -sProcessColorModel=DeviceRGB -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile=%OUT% %IN%"'
         call = call_fmt.replace('%IN%', old_PS).replace('%OUT%', filename).replace('%CWD%', os.path.abspath(os.path.dirname(__file__))).replace('%folder%', folder)
         # print(call); quit()
         subprocess.check_call(call, shell=True, cwd=folder)
@@ -65,7 +65,7 @@ def check_duplicated_doi(bbl):
         if count > 1:
             raise ValueError(f'Duplicated doi found: {item}')
 
-def get_injected(TeX, *, ofnames, convert_PDFA=True, inject_bbl=False, has_SI=True):
+def get_injected(TeX, *, ofnames, convert_PDFA=True, inject_bbl=True, has_SI=True):
     for matcher in  ['*.bib','*.bst','*.cls','*.bst']:
         for fname in glob.glob(matcher):
             shutil.copy2(fname, 'submission')
@@ -191,7 +191,7 @@ def make_diff(TeX):
                 os.remove(fn)
 
     # See https://stackoverflow.com/a/41489151
-    call_fmt = 'docker run --mount type=bind,source="%CWD%",target=/h gs bash -c "cd /h && latexdiff --allow-spaces --encoding=ascii \\"0. submission/submission/%TeX%_injected.tex\\" submission/%TeX%_injected.tex > diff.tex"'
+    call_fmt = 'docker run --rm --mount type=bind,source="%CWD%",target=/h gs bash -c "cd /h && latexdiff --allow-spaces --encoding=ascii \\"0. submission/submission/%TeX%_injected.tex\\" submission/%TeX%_injected.tex > diff.tex"'
     call = call_fmt.replace('%TeX%', TeX).replace('%CWD%', os.path.abspath(here).replace("\\",'/'))
     # print(call)#; quit()
     subprocess.check_call(call, shell=True, cwd='.')
@@ -214,14 +214,45 @@ def make_diff(TeX):
 TeX = 'paper'
 SI_TeX = 'SI_' + TeX
 resubmission = False
-has_SI = True
+has_SI = False
 
 # Build SI
 if has_SI:
     build_SI(SI_TeX)
 
 # Build injected manuscript, embedding the BibTeX and updating figure paths
-get_injected(TeX, ofnames=['submission/' + TeX + '_injected.tex'], convert_PDFA=False, inject_bbl=False, has_SI=has_SI)
+get_injected(TeX, ofnames=['submission/' + TeX + '_injected.tex'], convert_PDFA=True, inject_bbl=True, has_SI=has_SI)
+
+
+# os.environ['PATH'] = os.environ['PATH'] + ';' + r'C:\Users\ihb\AppData\Roaming\Python\Python38\Scripts'
+
+# for path in filter(lambda p: 'paper_injected.pdf' not in p, glob.glob('submission/*.pdf')):
+#     fname = os.path.split(path)[1]
+#     # subprocess.check_call(rf'magick mogrify -density 500 -format png {fname}', shell=True, cwd='submission')
+#     fnamestem = fname.rsplit('.', 1)[0]
+#     subprocess.check_call(rf'"C:\Program Files\Inkscape\bin\inkscape" --pdf-poppler --export-filename={fnamestem}.svg {fname}', shell=True, cwd='submission')
+# shutil.copy2('pandoc-crossref.exe','submission')
+# # subprocess.check_call('pandoc paper_injected.tex --filter pandoc-crossref --citeproc  --default-image-extension=.svg -o mydoc.docx', shell=True, cwd='submission')
+# subprocess.check_call('pandoc paper_injected.tex --default-image-extension=.svg -t markdown -o paper_injected.text', shell=True, cwd='submission')
+
+# # Add equation references
+# def repl_func(matchobj):
+#     # If the line is commented, don't do the injection
+#     eq = matchobj.group(1)
+#     label = '{#eq}'
+#     if r'\label' in eq:
+#         tag = re.search(r'\\label\{(.*?)\}', contents).group(1)
+#         label = f'{{#{tag}}}'
+#     return '$$'+eq+'$$ ' + label
+# with open('submission/paper_injected.text','r') as fp:
+#     contents = fp.read()
+#     contents = re.sub(r"^\${2}(.+)\${2}", repl_func, contents, flags=re.MULTILINE|re.DOTALL)
+# with open('submission/paper_injected.text', 'w') as fp:
+#     fp.write(contents)
+
+# # subprocess.check_call('pandoc paper_injected.text --filter pandoc-xnos --citeproc -t docx+native_numbering -o paper_injected.docx', shell=True, cwd='submission')
+# subprocess.check_call('pandoc paper_injected.text -f markdown --filter pandoc-eqnos -t html -o paper_injected.html', shell=True, cwd='submission')
+# subprocess.check_call('pandoc paper_injected.text --filter pandoc-eqnos -f markdown -t docx+native_numbering -o paper_injected.docx', shell=True, cwd='submission')
 
 # Cleanup again
 clean(TeX)
